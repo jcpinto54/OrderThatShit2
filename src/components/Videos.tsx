@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { videos, type VideoTestimonial } from "@/data/videos";
+import { useEffect, useRef, useState } from "react";
+import { adVideo, videos, type VideoTestimonial } from "@/data/videos";
 import { Modal } from "./Modal";
 import { useOrders } from "@/lib/orders";
 
@@ -56,27 +56,53 @@ function FakeVideo({ v }: { v: VideoTestimonial }) {
 }
 
 function RealVideo({ v }: { v: VideoTestimonial }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [started, setStarted] = useState(false);
   return (
-    <video
-      src={v.src}
-      poster={v.poster}
-      controls
-      playsInline
-      preload="metadata"
-      className="aspect-video w-full border-b-[3px] border-ink bg-ink object-cover"
-    />
+    <div className="relative aspect-video w-full overflow-hidden border-b-[3px] border-ink bg-ink">
+      <video
+        ref={ref}
+        src={v.src}
+        poster={v.poster}
+        controls={started}
+        playsInline
+        preload="none"
+        onEnded={() => setStarted(false)}
+        className="h-full w-full object-cover"
+      />
+      {!started && (
+        <button
+          type="button"
+          onClick={() => {
+            setStarted(true);
+            // play() rejects if the browser can't decode the clip; fall back to the native controls.
+            ref.current?.play().catch(() => undefined);
+          }}
+          aria-label={`Play testimonial from ${v.name}`}
+          className="group absolute inset-0 grid place-items-center"
+        >
+          <span className="grid h-16 w-16 place-items-center border-[3px] border-paper bg-urgent pl-1 text-2xl text-white shadow-hard-sm transition group-hover:scale-110">
+            ▶
+          </span>
+          <span className="absolute right-3 top-3 bg-ink/80 px-2 py-0.5 font-mono text-xs text-paper">
+            {v.duration}
+          </span>
+        </button>
+      )}
+    </div>
   );
 }
 
 function TheAd({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { open: order } = useOrders();
   const [phase, setPhase] = useState<"skip" | "over">("skip");
-  const [n, setN] = useState(5);
+  const AD_SECONDS = adVideo ? 8 : 5;
+  const [n, setN] = useState(AD_SECONDS);
 
   useEffect(() => {
     if (!open) {
       setPhase("skip");
-      setN(5);
+      setN(AD_SECONDS);
       return;
     }
     const id = setInterval(() => {
@@ -89,32 +115,43 @@ function TheAd({ open, onClose }: { open: boolean; onClose: () => void }) {
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [open]);
+  }, [open, AD_SECONDS]);
 
   return (
     <Modal open={open} onClose={onClose} label="The ad" size="lg" tone="ink">
       {phase === "skip" ? (
         <div className="grid min-h-[40vh] place-items-center text-center">
-          <div>
-            <div className="animate-flash font-display text-5xl uppercase leading-none sm:text-8xl">
-              Order
-              <br />
-              that
-              <br />
-              shit
+          {adVideo ? (
+            <div className="w-full">
+              <video
+                src={adVideo.src}
+                poster={adVideo.poster}
+                autoPlay
+                playsInline
+                className="aspect-video w-full border-[3px] border-paper bg-ink object-cover"
+              />
+              <div className="mt-4 font-mono text-sm text-paper/60">Ad · 2:14:00 · Skip in {n}…</div>
             </div>
-            <div className="mt-6 font-mono text-sm text-paper/60">
-              Ad · 2:14:00 · Skip in {n}…
+          ) : (
+            <div>
+              <div className="animate-flash font-display text-5xl uppercase leading-none sm:text-8xl">
+                Order
+                <br />
+                that
+                <br />
+                shit
+              </div>
+              <div className="mt-6 font-mono text-sm text-paper/60">Ad · 2:14:00 · Skip in {n}…</div>
             </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="grid min-h-[40vh] place-items-center text-center">
           <div className="animate-pop">
             <div className="font-display text-3xl uppercase">That was the ad.</div>
             <p className="mt-3 text-paper/70">
-              You watched the important part. The remaining 2 hours, 13 minutes and 55 seconds are
-              just that, but slower.
+              You watched the important part. The remaining 2 hours, 13 minutes and {60 - AD_SECONDS}{" "}
+              seconds are just that, but slower.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button

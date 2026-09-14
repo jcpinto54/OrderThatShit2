@@ -1,10 +1,9 @@
 /**
  * Video testimonials.
  *
- * `src` is optional. When it's undefined the card renders an animated
- * "fake video" with captions. Drop a generated clip in `public/videos/`
- * and set `src: "/videos/linda.mp4"` (and optionally `poster`) to play the
- * real thing. Nothing else needs to change.
+ * Clips are generated on fal.ai by scripts/generate-videos.mjs (see README) and live in
+ * public/videos/. A card without `src` renders an animated placeholder with `captions`
+ * instead, so the page still works if a clip is removed.
  */
 export type VideoTestimonial = {
   id: string;
@@ -17,13 +16,21 @@ export type VideoTestimonial = {
   poster?: string;
 };
 
+/** The infomercial clip for the "Watch the ad" modal. Undefined = flashing text fallback. */
+export const adVideo: { src: string; poster: string } | undefined = {
+  src: "/videos/ad.mp4",
+  poster: "/videos/ad.jpg",
+};
+
 export const videos: VideoTestimonial[] = [
   {
     id: "linda",
     name: "Linda, 47",
     title: "“I ordered that shit at 2am”",
-    duration: "0:14",
+    duration: "0:08",
     hue: 12,
+    src: "/videos/linda.mp4",
+    poster: "/videos/linda.jpg",
     captions: [
       "It was 2am.",
       "I couldn't sleep.",
@@ -36,24 +43,28 @@ export const videos: VideoTestimonial[] = [
     id: "marcus",
     name: "Marcus, DevOps",
     title: "“Production was down”",
-    duration: "0:22",
+    duration: "0:08",
     hue: 210,
+    src: "/videos/marcus.mp4",
+    poster: "/videos/marcus.jpg",
     captions: [
       "The pager went off.",
       "Everything was on fire.",
-      "I opened orderthatshit.com.",
-      "Four minutes later, I felt better.",
+      "I ordered that shit.",
       "The fire is still there.",
+      "Morale? Through the roof.",
     ],
   },
   {
     id: "gary",
     name: "Gary, 61",
     title: "“It arrived on time”",
-    duration: "0:31",
+    duration: "0:08",
     hue: 140,
+    src: "/videos/gary.mp4",
+    poster: "/videos/gary.jpg",
     captions: [
-      "She said it was me or the shit.",
+      "She said it's me or the shit.",
       "The shit had tracking.",
       "She did not.",
       "Three to five business days.",
@@ -64,8 +75,10 @@ export const videos: VideoTestimonial[] = [
     id: "ceo",
     name: "Our CEO",
     title: "“A message from leadership”",
-    duration: "1:05",
+    duration: "0:08",
     hue: 45,
+    src: "/videos/ceo.mp4",
+    poster: "/videos/ceo.jpg",
     captions: [
       "When I founded this company,",
       "I had one question:",

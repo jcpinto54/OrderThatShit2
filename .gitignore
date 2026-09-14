@@ -6,3 +6,6 @@ dist
 .wrangler
 .env
 .env.*
+.cache
+.wrangler
+.dev.vars*
