@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* Self-hosted (latin subsets). No third-party font requests. */
+@font-face {
+  font-family: "Archivo Black";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/archivo-black-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("/fonts/inter-400-900-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --color-ink: #0b0b0f;
+  --color-ink-2: #15151c;
+  --color-ink-3: #22222c;
+  --color-paper: #fff8e7;
+  --color-cream: #fdf1d2;
+  --color-urgent: #ff2d20;
+  --color-urgent-dark: #c9160c;
+  --color-tv: #ffd400;
+  --color-cash: #16c172;
+  --color-cardboard: #c8944a;
+  --color-cardboard-light: #e0ab5e;
+  --color-cardboard-dark: #a9772f;
+  --color-cardboard-ink: #3b2a12;
+
+  --font-display: "Archivo Black", Impact, "Arial Black", sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --shadow-hard: 6px 6px 0 0 var(--color-ink);
+  --shadow-hard-sm: 3px 3px 0 0 var(--color-ink);
+  --shadow-hard-tv: 6px 6px 0 0 var(--color-tv);
+  --shadow-hard-red: 6px 6px 0 0 var(--color-urgent);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-marquee: marquee 45s linear infinite;
+  --animate-marquee-fast: marquee 22s linear infinite;
+  --animate-blink: blink 1s steps(2, start) infinite;
+  --animate-wiggle: wiggle 0.5s ease-in-out infinite;
+  --animate-pop: pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.2, 1, 0.3, 1) both;
+  --animate-slide-in-left: slide-in-left 0.4s cubic-bezier(0.2, 1, 0.3, 1) both;
+  --animate-spin-slow: spin 14s linear infinite;
+  --animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
+  --animate-flash: flash 0.35s steps(2, start) infinite;
+  --animate-shake: shake 0.5s ease-in-out;
+  --animate-ken-burns: ken-burns 12s ease-in-out infinite alternate;
+  --animate-caption: caption 6s steps(1, end) infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-14px) rotate(1deg); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes blink {
+    to { visibility: hidden; }
+  }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.85) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgb(255 45 32 / 0.6); }
+    100% { box-shadow: 0 0 0 18px rgb(255 45 32 / 0); }
+  }
+  @keyframes flash {
+    to { background-color: var(--color-tv); color: var(--color-ink); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+  @keyframes ken-burns {
+    from { transform: scale(1) translate(0, 0); }
+    to { transform: scale(1.15) translate(-3%, -2%); }
+  }
+  @keyframes caption {
+    0% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: var(--color-tv);
+    color: var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .btn,
+  .btn-primary,
+  .btn-tv,
+  .btn-ghost,
+  .btn-ghost-light {
+    @apply inline-flex cursor-pointer select-none items-center justify-center gap-2 border-[3px] border-ink px-6 py-3 font-display text-base uppercase tracking-wide transition-transform duration-150 ease-out active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:cursor-wait disabled:opacity-70;
+  }
+  .btn-primary {
+    @apply bg-urgent text-white shadow-hard hover:-translate-y-0.5;
+  }
+  .btn-tv {
+    @apply bg-tv text-ink shadow-hard hover:-translate-y-0.5;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-ink shadow-none hover:bg-ink hover:text-paper;
+  }
+  .btn-ghost-light {
+    @apply border-paper bg-transparent text-paper shadow-none hover:bg-paper hover:text-ink;
+  }
+  .card {
+    @apply border-[3px] border-ink bg-white shadow-hard;
+  }
+  .eyebrow {
+    @apply inline-block border-2 border-ink bg-tv px-3 py-1 font-display text-xs uppercase tracking-[0.2em];
+  }
+  .h2 {
+    @apply font-display text-4xl uppercase leading-[0.95] tracking-tight sm:text-5xl lg:text-6xl;
+  }
+  .lede {
+    @apply mt-4 max-w-2xl text-lg text-ink/75 sm:text-xl;
+  }
+  .fine {
+    @apply text-xs leading-relaxed text-ink/55;
+  }
+  .marquee-track {
+    @apply flex w-max items-center gap-10 whitespace-nowrap;
+  }
+  .stripes {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--color-tv) 0 14px,
+      var(--color-ink) 14px 28px
+    );
+  }
+  .halftone {
+    background-image: radial-gradient(rgb(11 11 15 / 0.12) 1.2px, transparent 1.2px);
+    background-size: 12px 12px;
+  }
+  .grain {
+    background-image: radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+  .strike {
+    position: relative;
+  }
+  .strike::after {
+    content: "";
+    position: absolute;
+    left: -4%;
+    right: -4%;
+    top: 50%;
+    height: 4px;
+    background: var(--color-urgent);
+    transform: rotate(-8deg);
+  }
+  details.faq > summary {
+    list-style: none;
+  }
+  details.faq > summary::-webkit-details-marker {
+    display: none;
+  }
+  details.faq[open] .faq-icon {
+    transform: rotate(45deg);
+  }
+}

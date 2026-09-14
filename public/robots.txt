@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Sitemap: https://orderthatshit.com/sitemap.xml
+
+# Yes, robots. You too. Order that shit.
