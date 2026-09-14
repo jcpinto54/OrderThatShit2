@@ -29,11 +29,11 @@ export default function App() {
         <Hero />
         <SeenOn />
         <Stats />
+        <Videos />
         <Testimonials />
         <ShitFinder />
         <HowItWorks />
         <Science />
-        <Videos />
         <Pricing />
         <Comparison />
         <Press />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useOrders } from "@/lib/orders";
 
 const links = [
+  { href: "#videos", label: "Videos" },
   { href: "#stories", label: "Stories" },
   { href: "#finder", label: "Shit Finder™" },
   { href: "#science", label: "Science" },

@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "orderthatshit",
+  // This must match the Worker that Cloudflare Workers Builds deploys from this repo.
+  "name": "orderthatshit2",
   "compatibility_date": "2026-09-01",
   // Assets-only Worker: no server code, just the Vite build in dist/.
   "assets": {
@@ -8,12 +9,11 @@
     "not_found_handling": "single-page-application",
     "html_handling": "auto-trailing-slash"
   },
-  // Custom Domains: Cloudflare creates the DNS records and certificates on deploy.
-  // The zone must already be on the account that the API token belongs to.
-  "routes": [
-    { "pattern": "orderthatshit.com", "custom_domain": true },
-    { "pattern": "www.orderthatshit.com", "custom_domain": true }
-  ],
+  // No "routes" key on purpose. orderthatshit.com and www are attached to this Worker in
+  // the Cloudflare dashboard, and Wrangler overwrites the route list with whatever is in
+  // this file on every deploy. Declaring them here would fight the dashboard and, on the
+  // apex, fail outright because that hostname already has hand-made DNS records.
+  // See https://developers.cloudflare.com/workers/wrangler/configuration/#source-of-truth
   "workers_dev": true,
   "observability": { "enabled": true }
 }

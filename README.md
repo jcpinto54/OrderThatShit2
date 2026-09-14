@@ -35,21 +35,29 @@ npm run deploy     # build + wrangler deploy to Cloudflare
 
 ## Deploying
 
-The site runs as an assets-only Cloudflare Worker. `wrangler.jsonc` points at `dist/`,
-serves it as a single-page app, and attaches the custom domains `orderthatshit.com` and
-`www.orderthatshit.com` (Cloudflare creates the DNS records and certificates on deploy,
-as long as the zone is on the same account as the API token).
+The site is an assets-only Cloudflare Worker: no server code, just the Vite build in `dist/`
+served as a single-page app.
 
-Two ways to ship it:
+**Deploys are handled by Cloudflare Workers Builds**, connected to this repository in the
+Cloudflare dashboard. Every push to `main` is built and deployed by Cloudflare, with no
+GitHub Actions involvement. The `CI` workflow still builds every push as a check.
 
-1. **GitHub Actions** (`.github/workflows/deploy.yml`): every push to `main` builds and runs
-   `wrangler deploy`. Add two repository secrets: `CLOUDFLARE_API_TOKEN` (a token made from
-   the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`.
-2. **Locally**: `CLOUDFLARE_API_TOKEN=... npm run deploy`, or `npx wrangler login` once and
-   then `npm run deploy`.
+The custom domains `orderthatshit.com` and `www.orderthatshit.com` are attached to the Worker
+in the dashboard under **Settings → Domains & Routes**. That is deliberate, and it is why this
+repository's Wrangler config has no `routes` key: Wrangler replaces a Worker's whole route
+list with whatever the config declares on each deploy, so declaring the domains here would
+fight the dashboard. The apex also carries hand-made DNS records, which makes a
+Wrangler-managed Custom Domain on it fail outright.
 
-The build is otherwise a plain static site in `dist/`, so Vercel, Netlify, or GitHub Pages
-work too if you ever move it.
+To deploy by hand, for example to ship without pushing:
+
+```bash
+npx wrangler login     # once
+npm run deploy         # build + wrangler deploy
+```
+
+The output is a plain static site in `dist/`, so Vercel, Netlify, or GitHub Pages would work
+too if you ever move it.
 
 ## Generating the video testimonials
 
