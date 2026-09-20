@@ -4,8 +4,9 @@ import { defineConfig, devices } from "@playwright/test";
  * Smoke tests run against the production build, served by `vite preview`, so CI
  * exercises the same bundle Cloudflare ships rather than the dev server.
  */
+const HOST = "127.0.0.1";
 const PORT = 4173;
-const baseURL = `http://127.0.0.1:${PORT}`;
+const baseURL = `http://${HOST}:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -35,10 +36,15 @@ export default defineConfig({
       },
     },
   ],
+  // `npm run test:e2e` builds first; this only serves dist/. Bind the host
+  // explicitly so the server answers on the same address Playwright polls —
+  // `vite preview` defaults to localhost, which need not be 127.0.0.1.
   webServer: {
-    command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
+    command: `npm run preview -- --host ${HOST} --port ${PORT} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
+    timeout: 120_000,
+    stdout: "pipe",
+    stderr: "pipe",
   },
 });

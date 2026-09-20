@@ -29,7 +29,7 @@ jobs:
       - run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      # The Playwright config builds the site and serves dist/ with `vite preview`.
+      # Builds the site, then runs the tests against dist/ via `vite preview`.
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
