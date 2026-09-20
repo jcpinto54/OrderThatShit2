@@ -2,12 +2,13 @@
   "name": "orderthatshit",
   "private": true,
   "version": "1.0.0",
-  "description": "orderthatshit.com \u2014 the #1 solution to whatever it is.",
+  "description": "orderthatshit.com — the #1 solution to whatever it is.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "preview": "vite preview",
+    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "og": "node scripts/generate-og.mjs",
     "deploy": "npm run build && wrangler deploy",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@fal-ai/client": "^1.10.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^26.5.1",

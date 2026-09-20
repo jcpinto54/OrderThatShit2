@@ -9,3 +9,5 @@ dist
 .cache
 .wrangler
 .dev.vars*
+playwright-report
+test-results

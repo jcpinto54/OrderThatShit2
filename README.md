@@ -28,6 +28,7 @@ npm install
 npm run dev        # local dev server
 npm run build      # typecheck + production build into dist/
 npm run preview    # serve dist/ locally
+npm run test:e2e   # Playwright smoke tests against the production build
 npm run og         # regenerate public/og.png (needs Playwright's Chromium)
 npm run videos     # regenerate the video testimonials on fal.ai (needs FAL_KEY)
 npm run deploy     # build + wrangler deploy to Cloudflare
