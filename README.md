@@ -21,7 +21,9 @@ The FDA has been notified.
 
 ## Stack
 
-Vite + React + TypeScript + Tailwind CSS v4. Static output, no backend, no tracking.
+Vite + React + TypeScript + Tailwind CSS v4. Static output, no backend. No cookies, no
+fingerprinting and nothing that follows anyone between sites — the only measurement is
+Cloudflare's cookieless pageview counter, described under [Analytics](#analytics).
 
 ```bash
 npm install
@@ -58,6 +60,37 @@ npm run deploy         # build + wrangler deploy
 
 The output is a plain static site in `dist/`, so Vercel, Netlify, or GitHub Pages would work
 too if you ever move it.
+
+## Analytics
+
+The site reports to [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/),
+which counts pageviews and load times without cookies, without fingerprinting and without
+following anyone from one site to the next. There is nothing to consent to, so the cookie
+banner on the page stays what it always was, a joke.
+
+The beacon is injected into `dist/index.html` at build time by a small Vite plugin in
+`vite.config.ts`, and only when `CF_BEACON_TOKEN` is set. Builds without it — the dev server,
+CI, a local `npm run build` — ship no beacon and report nothing.
+
+To turn it on:
+
+1. In the Cloudflare dashboard, go to **Analytics & Logs → Web Analytics → Add a site** and
+   add `orderthatshit.com`. Choose the manual JS snippet option and copy the site token out of
+   it (the `token` value inside `data-cf-beacon`).
+2. Under **Workers & Pages → orderthatshit2 → Settings → Build → Build variables**, add
+   `CF_BEACON_TOKEN` with that value.
+3. Push to `main`. Workers Builds rebuilds with the token baked in, and numbers start
+   appearing in the Web Analytics dashboard within a minute or two.
+
+The token is not a secret: it is visible in the page source of every site that uses one. It
+lives in the build environment so it can be rotated or removed without a commit.
+
+To check a build locally:
+
+```bash
+CF_BEACON_TOKEN=... npm run build
+grep cloudflareinsights dist/index.html
+```
 
 ## Generating the video testimonials
 
