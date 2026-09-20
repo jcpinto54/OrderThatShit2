@@ -110,16 +110,8 @@ export const finderSteps = [
   "Generating confidence…",
 ];
 
-export const finderVerdicts = [
-  "Studies show people who deal with this have overwhelmingly not ordered that shit. Correlation? Causation? Yes.",
-  "Your problem is unique. Our solution is not.",
-  "We ran your problem through our model. The model ordered that shit.",
-  "Diagnosis: insufficient shit. Prescription: that shit. Take with water.",
-  "This is a textbook case. We don't have the textbook, but we have that shit.",
-  "Our AI considered 14 possible solutions and deleted 13 of them.",
-  "Historically, everyone with this exact problem either ordered that shit or is still complaining. Your call.",
-  "We've seen this before. We didn't fix it then either, but the shit shipped on time.",
-];
+// The verdicts themselves moved to src/data/verdicts.ts: each one needs a stable
+// id now, because it is also a share URL and a pre-rendered card.
 
 export const idleNags = [
   "You've been here 45 seconds and haven't ordered that shit. Is everything okay at home?",
