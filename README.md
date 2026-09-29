@@ -10,7 +10,8 @@ The FDA has been notified.
 
 - **Hero** with a stock counter that only goes up and a flash sale that never ends.
 - **Testimonials** from real\* people whose problems were fixed\*\* by ordering that shit.
-- **Shit Finder™**, an "AI" that analyzes any problem and recommends ordering that shit.
+- **Shit Finder™**, an "AI" that analyzes any problem and recommends ordering that shit. Every
+  verdict has its own link and its own preview card, so sharing one shows the verdict.
 - **The Science™**: charts proving a perfect correlation between ordering that shit and having ordered that shit.
 - **Video testimonials**, AI-generated on fal.ai (see below), and a 2h14m ad you can skip after eight seconds.
 - **Pricing**, a comparison table, press quotes, FAQ, and a legally exhausting footer.
@@ -24,6 +25,9 @@ The FDA has been notified.
 Vite + React + TypeScript + Tailwind CSS v4. Static output, no backend. No cookies, no
 fingerprinting and nothing that follows anyone between sites — the only measurement is
 Cloudflare's cookieless pageview counter, described under [Analytics](#analytics).
+Node 22.18 or newer: the build scripts import `src/data/verdicts.ts` directly, so they rely on
+Node running TypeScript without a build step. The Playwright scripts take `CHROMIUM_PATH` if you
+already have a Chromium lying around.
 
 ```bash
 npm install
@@ -32,6 +36,7 @@ npm run build      # typecheck + production build into dist/
 npm run preview    # serve dist/ locally
 npm run test:e2e   # Playwright smoke tests against the production build
 npm run og         # regenerate public/og.png (needs Playwright's Chromium)
+npm run cards      # regenerate the share cards in public/share/ (same)
 npm run videos     # regenerate the video testimonials on fal.ai (needs FAL_KEY)
 npm run deploy     # build + wrangler deploy to Cloudflare
 ```
@@ -93,6 +98,40 @@ CF_BEACON_TOKEN=... npm run build
 grep cloudflareinsights dist/index.html
 ```
 
+## Share links
+
+A shared joke only works if the preview carries it, so every Shit Finder verdict is its own
+URL with its own card:
+
+| URL | What it is |
+| --- | --- |
+| `/v/<id>/` | One Shit Finder verdict, with `public/share/<id>.png` as the preview |
+| `/c/` | Somebody's certificate. Landing here opens the order form, pre-filled with what they ordered |
+
+Link previews are built by crawlers that do not run JavaScript, so a single page app cannot
+give a share its own title and image. `scripts/build-share-pages.mjs` runs after `vite build`
+and writes a real `dist/v/<id>/index.html` per verdict: the same bundle and the same app, with
+the meta tags rewritten and the sitemap regenerated. The app reads the URL on load and shows
+the matching verdict without replaying the fake analysis. Nothing is added to the Worker, which
+stays assets-only.
+
+The cards themselves are pre-rendered by `npm run cards` and committed, the same way `og.png`
+is. That is deliberate. The verdict list is finite, so there is no reason to generate anything
+per visitor: no runtime cost, no per-share bill however far a link travels, and nothing to keep
+warm. The one rule that makes it work is that **the visitor's own typed problem never goes into
+the card**. It shows on the page and rides in `?p=`, capped and stripped in `src/lib/share.ts`,
+but burning it into an image would mean rendering per request and would let anyone craft a link
+that makes orderthatshit.com serve a preview card with their words on it.
+
+Verdicts live in `src/data/verdicts.ts`. Rewording one is free; **renaming an `id` breaks every
+link anyone has ever posted**, because the id is the URL and the card filename. Adding a verdict
+means running `npm run cards` and committing the new PNG — the build fails if a card is missing.
+
+To put art behind the cards, drop any number of images into `public/share/plates/` and run
+`npm run cards` again. Each verdict picks one by hash, so a given verdict always looks the same.
+They can come from anywhere, including a one-off fal.ai run like the videos below; generating a
+few dozen once is plenty, since nobody ever sees two cards side by side.
+
 ## Generating the video testimonials
 
 The clips in `public/videos/` are generated on [fal.ai](https://fal.ai) by
@@ -136,4 +175,5 @@ All words live in `src/data/`:
 | `faqs.ts` | FAQ questions and answers |
 | `pricing.ts` | Pricing tiers |
 | `videos.ts` | Video testimonial cards |
+| `verdicts.ts` | Shit Finder verdicts, each with the stable id used by its share link and card |
 | `misc.ts` | "As seen on" outlets, press quotes, ticker names/places/items, Shit Finder verdicts, processing steps, nags |

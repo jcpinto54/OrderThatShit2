@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { readSharedLanding } from "./share";
 
 const STORAGE_KEY = "ots.orders.v1";
 
@@ -66,6 +67,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const recordOrder = useCallback((item: string) => {
     setPersisted((s) => ({ count: s.count + 1, lastItem: item }));
   }, []);
+
+  // Someone followed a /c/ link: their friend has ordered that shit, so open
+  // the order form with the same thing already typed in. Peer pressure, as a URL.
+  useEffect(() => {
+    const landing = readSharedLanding();
+    if (landing?.kind === "certificate") open(landing.item);
+  }, [open]);
 
   const value = useMemo<OrderState>(
     () => ({ ...persisted, isOpen, prefill, open, close, recordOrder }),

@@ -4,6 +4,7 @@ import { Modal } from "./Modal";
 import { useOrders } from "@/lib/orders";
 import { orderPlaceholders, processingSteps } from "@/data/misc";
 import { orderNumber, pick, shuffle } from "@/lib/random";
+import { certificateShareUrl, shareLink } from "@/lib/share";
 
 type Step = "ask" | "processing" | "done";
 
@@ -83,18 +84,13 @@ export function OrderModal() {
   };
 
   const share = async () => {
-    const text = `I just ordered that shit → https://orderthatshit.com\nMy problems are still here, but so is that shit.`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      /* user bailed; respect it */
-    }
+    const toClipboard = await shareLink(
+      "I just ordered that shit. My problems are still here, but so is that shit.",
+      certificateShareUrl(item),
+    );
+    if (!toClipboard) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const label = item.trim() || "that shit";
