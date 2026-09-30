@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isBlackFridayWeek } from "@/lib/season";
 
 const START = 4 * 60 + 59;
 
@@ -12,6 +13,7 @@ export function TopBar() {
   const [left, setLeft] = useState(START);
   const [extended, setExtended] = useState(false);
   const [extensions, setExtensions] = useState(0);
+  const [bf] = useState(isBlackFridayWeek);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -34,12 +36,12 @@ export function TopBar() {
         <span className="bg-ink px-3 py-1 text-paper">
           {extended ? (
             <span className="animate-shake inline-block">
-              ⚡ Sale extended! (It was never going to end)
+              {bf ? "⚡ Black Friday extended! (It's a lifestyle now)" : "⚡ Sale extended! (It was never going to end)"}
               {extensions > 1 ? ` ×${extensions}` : ""}
             </span>
           ) : (
             <>
-              ⚡ Flash sale: 50% off that shit — ends in{" "}
+              {bf ? "⚡ Black Friday: 100% off that shit (it was always free) — ends in" : "⚡ Flash sale: 50% off that shit — ends in"}{" "}
               <span className="tabular-nums text-tv">{fmt(left)}</span> ⚡
             </>
           )}

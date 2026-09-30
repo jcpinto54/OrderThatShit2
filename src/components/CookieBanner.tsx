@@ -7,12 +7,26 @@ export function CookieBanner() {
   const { open } = useOrders();
   const [show, setShow] = useState(false);
 
+  // Barge in once they scroll (or after a while), not on arrival: the first screen, the one
+  // people screenshot and screen-record, should be the joke and the order box, not a banner.
   useEffect(() => {
+    let dismissed = false;
     try {
-      if (localStorage.getItem(KEY) !== "1") setShow(true);
+      dismissed = localStorage.getItem(KEY) === "1";
     } catch {
-      setShow(true);
+      /* show it */
     }
+    if (dismissed) return;
+    const appear = () => setShow(true);
+    const onScroll = () => {
+      if (window.scrollY > 400) appear();
+    };
+    const t = window.setTimeout(appear, 10_000);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   // Lets the purchase ticker and idle nag sit above the bar while it's visible.

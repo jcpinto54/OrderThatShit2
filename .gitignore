@@ -11,3 +11,5 @@ dist
 .dev.vars*
 playwright-report
 test-results
+# Rendered social cuts and ad masters (npm run social / npm run ads); re-render from the scripts.
+/social/

@@ -108,11 +108,13 @@ if (!only || only === "certificate") {
   jobs.push({
     out: path.join(outDir, "certificate.png"),
     html: card({
+      // Still "certificate" in the URL (/c/) and filename so posted links keep working;
+      // the checkout now prints an Order Authorization, so the card says that.
       id: "certificate",
-      eyebrow: "★ Certified ★",
-      headline: "I ordered that shit. My problems are still here, but so is that shit.",
+      eyebrow: "★ Order Authorization ★",
+      headline: "It's decided. I'm finally ordering that thing I kept thinking about.",
       size: 50,
-      footnote: "Certificate of having ordered that shit",
+      footnote: "Legally meaningless. Emotionally binding.",
     }),
   });
 }

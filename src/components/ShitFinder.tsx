@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { finderSteps } from "@/data/misc";
 import { genericVerdicts, matchVerdict, verdictById, type Verdict } from "@/data/verdicts";
+import { HELPLINE_URL, crisis, grief } from "@/data/care";
 import { pick, shuffle } from "@/lib/random";
 import { useOrders } from "@/lib/orders";
 import { readSharedLanding, shareLink, verdictShareUrl } from "@/lib/share";
@@ -14,6 +15,8 @@ const chips = [
   "My cat hates me",
   "It's Monday",
   "I have too much shit",
+  "4,000 unread emails",
+  "Black Friday FOMO",
 ];
 
 type Phase = "idle" | "thinking" | "done";
@@ -28,9 +31,19 @@ export function ShitFinder() {
   const [analysed, setAnalysed] = useState("");
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  // Set when the problem isn't a joke; the Finder answers straight and offers nothing to share.
+  const [care, setCare] = useState<"crisis" | "grief" | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const run = (text: string) => {
+    const serious = crisis.test(text) ? "crisis" : grief.test(text) ? "grief" : null;
+    setCare(serious);
+    if (serious) {
+      setAnalysed(text);
+      setVerdict(null);
+      setPhase("done");
+      return;
+    }
     const chosen = shuffle(finderSteps).slice(0, 4);
     setAnalysed(text);
     setSteps(chosen);
@@ -146,7 +159,49 @@ export function ShitFinder() {
           </div>
         </form>
 
-        {phase !== "idle" && (
+        {care && (
+          <div
+            ref={resultRef}
+            className="mt-10 border-[3px] border-paper bg-ink-2 p-6 sm:p-8"
+            aria-live="polite"
+          >
+            <div className="font-display text-2xl uppercase leading-tight text-tv sm:text-3xl">
+              {care === "crisis" ? "We can't joke about this one." : "This one's too real for a joke website."}
+            </div>
+            {care === "crisis" ? (
+              <p className="mt-4 max-w-prose text-paper/85">
+                If you're thinking about hurting yourself, please talk to someone today. There is
+                free, confidential support in almost every country:{" "}
+                <a className="font-bold text-tv underline" href={HELPLINE_URL} target="_blank" rel="noopener noreferrer">
+                  findahelpline.com
+                </a>
+                . If you're in immediate danger, call your local emergency number.
+              </p>
+            ) : (
+              <p className="mt-4 max-w-prose text-paper/85">
+                We're sorry. There's no verdict for this, and nothing to order. Be gentle with
+                yourself today, and if it would help to talk to someone,{" "}
+                <a className="font-bold text-tv underline" href={HELPLINE_URL} target="_blank" rel="noopener noreferrer">
+                  findahelpline.com
+                </a>{" "}
+                lists free support near you.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setCare(null);
+                setPhase("idle");
+                setProblem("");
+              }}
+              className="btn-ghost-light mt-6"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {!care && phase !== "idle" && (
           <div
             ref={resultRef}
             className="mt-10 border-[3px] border-paper bg-ink-2 p-6 font-mono text-sm shadow-hard-tv sm:p-8"
@@ -198,6 +253,9 @@ export function ShitFinder() {
                     I have another problem
                   </button>
                 </div>
+                <p className="fine mt-3 text-paper/40">
+                  Sharing sends the verdict and, in the link, the words you typed.
+                </p>
               </div>
             )}
           </div>

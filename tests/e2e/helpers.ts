@@ -7,6 +7,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
  */
 export async function dismissCookieBanner(page: Page): Promise<void> {
   const banner = page.getByRole("region", { name: "Cookie notice" });
+  // It waits for the visitor to scroll before barging in.
+  await page.mouse.wheel(0, 600);
   await expect(banner).toBeVisible();
   await banner.getByRole("button", { name: "Decline (still order it)" }).click();
   await expect(banner).toBeHidden();

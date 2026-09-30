@@ -14,6 +14,8 @@
     "deploy": "npm run build && wrangler deploy",
     "videos": "node scripts/generate-videos.mjs",
     "transcribe": "node scripts/transcribe.mjs",
+    "social": "node scripts/make-social-cuts.mjs",
+    "ads": "node scripts/make-ads.mjs",
     "cards": "node scripts/generate-share-cards.mjs"
   },
   "dependencies": {

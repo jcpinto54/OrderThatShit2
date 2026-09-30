@@ -12,15 +12,17 @@ export const seenOn = [
   "The Back of a Bus",
 ];
 
+// Fictional outlets on purpose: quotes invented for real publications or agencies read as
+// endorsements (and as fake reviews, the day anything here costs money).
 export const press = [
-  { quote: "Is this real?", who: "Wired (in an email to us)" },
-  { quote: "Please stop emailing us.", who: "The Verge" },
-  { quote: "We have no comment.", who: "The FDA" },
+  { quote: "Is this real?", who: "A Tech Magazine (in an email to us)" },
+  { quote: "Please stop emailing us.", who: "A Tech Website" },
+  { quote: "We have no comment.", who: "A Federal Agency" },
   { quote: "★★★★★", who: "Us" },
   { quote: "I ordered it. I don't want to talk about it.", who: "A Journalist" },
   { quote: "Concerning.", who: "Our Lawyer" },
   { quote: "Wait, what did I order?", who: "Our CEO" },
-  { quote: "Unsubscribe.", who: "TechCrunch" },
+  { quote: "Unsubscribe.", who: "A Startup Newsletter" },
 ];
 
 export const trustedBy = [
@@ -69,6 +71,11 @@ export const tickerItems = [
 ];
 
 export const orderPlaceholders = [
+  "those shoes",
+  "a second monitor",
+  "the good coffee machine",
+  "noise-cancelling headphones",
+  "a flight home",
   "a new life",
   "the thing from the ad",
   "a treadmill I'll never use",

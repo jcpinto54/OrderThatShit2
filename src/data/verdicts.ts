@@ -26,7 +26,7 @@ export const verdicts: Verdict[] = [
   {
     id: "too-much-shit",
     text: "Interesting. Our data suggests the only cure for too much shit is slightly more shit. It's homeopathic.",
-    match: (p) => p.includes("too much shit") || p.includes("too much stuff"),
+    match: (p) => /\btoo much (shit|stuff)\b/.test(p),
   },
   {
     id: "said-shit",
@@ -35,40 +35,76 @@ export const verdicts: Verdict[] = [
   },
   {
     id: "broke",
-    text: "Financial problems are best solved by spending money on that shit. Trust the process. Ignore your accountant. Her name is Nadia and she also ordered it.",
-    match: (p) =>
-      p.includes("broke") || p.includes("money") || p.includes("debt") || p.includes("poor"),
+    // Real money trouble is close and severe, so the joke turns on us, not on them.
+    text: "Good news: that shit is free, because it doesn't exist. Cheapest fix you'll find all Black Friday. Your accountant, Nadia, is thrilled.",
+    match: (p) => /\b(broke|money|debts?|poor)\b/.test(p),
   },
   {
     id: "help",
     text: "Help is not available at this time. That shit is.",
-    match: (p) => p.includes("help"),
+    match: (p) => /\bhelp\b/.test(p),
   },
   {
     id: "code",
     text: "Have you tried turning it off and ordering that shit?",
-    match: (p) =>
-      p.includes("code") || p.includes("bug") || p.includes("prod") || p.includes("deploy"),
+    match: (p) => /\b(code|coding|bugs?|prod|production|deploy\w*|outage|pager)\b/.test(p),
   },
   {
     id: "monday",
     text: "Monday is a construct. So is that shit. Only one of them ships.",
-    match: (p) => p.includes("monday"),
+    match: (p) => /\bmondays?\b/.test(p),
   },
   {
     id: "ex",
     text: "Do not text back. Order that shit instead. It arrives faster than closure.",
-    match: (p) => p.includes("ex") && (p.includes("text") || p.includes("call")),
+    // Whole words: "text" contains "ex", and a boss who texted is not an ex.
+    match: (p) => /\b(my ex|ex|ex-\w+)\b/.test(p) && /\b(text\w*|call\w*|messag\w*|dm\w*)\b/.test(p),
   },
   {
     id: "pets",
     text: "Pets can sense when you haven't ordered that shit. It's in their eyes. Fix it.",
-    match: (p) => p.includes("cat") || p.includes("dog"),
+    // Whole words: "vacation" and "education" contain "cat".
+    match: (p) => /\b(cats?|kitt(y|en|ens|ies)|dogs?|pupp(y|ies))\b/.test(p),
+  },
+  {
+    id: "meetings",
+    text: "This meeting could have been an order. Order that shit, then block out \"focus time\" to wait for it.",
+    match: (p) => /\b(meetings?|stand-?ups?|calendar|zoom calls?)\b/.test(p),
+  },
+  {
+    id: "inbox",
+    text: "4,000 unread emails. One order. Guess which one gets a tracking number.",
+    match: (p) => /\b(inbox|e-?mails?|unread)\b/.test(p),
+  },
+  {
+    id: "group-chat",
+    text: "Leave the group chat on read. Order that shit. Come back with news.",
+    match: (p) => /\b(group ?chats?)\b/.test(p),
+  },
+  {
+    id: "sunday",
+    text: "The Sunday scaries are just anticipation with bad PR. Order that shit and give it somewhere to go.",
+    match: (p) => /\b(sunday scaries|sundays?)\b/.test(p),
+  },
+  {
+    id: "doomscrolling",
+    text: "You've scrolled past 400 things you didn't order. Order the one you actually wanted.",
+    match: (p) => /\b(doom ?scroll\w*|scrolling)\b/.test(p),
+  },
+  {
+    id: "nothing-to-wear",
+    text: "You have plenty to wear. What you don't have is that shit.",
+    match: (p) => /\bnothing to wear\b/.test(p),
+  },
+  {
+    id: "black-friday",
+    text: "Black Friday is for things you don't want. We only authorize the one thing you do. Order that shit.",
+    match: (p) => /\b(black friday|cyber monday)\b/.test(p),
   },
   {
     id: "tired",
     text: "Rest is temporary. That shit is forever. Also it comes in a box you can lean on.",
-    match: (p) => p.includes("tired") || p.includes("sleep"),
+    match: (p) => /\b(tired|sleep\w*|exhausted|insomnia)\b/.test(p),
   },
 
   // Generic pool.

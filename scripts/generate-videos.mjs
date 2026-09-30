@@ -109,7 +109,7 @@ async function processCharacter(c) {
     else {
       const d = await run(
         "fal-ai/flux-pro/v1.1-ultra",
-        { prompt: c.portraitPrompt, aspect_ratio: "16:9", raw: true, output_format: "jpeg", safety_tolerance: "5", seed: c.seed ?? 4147 },
+        { prompt: c.portraitPrompt, aspect_ratio: c.aspect ?? "16:9", raw: true, output_format: "jpeg", safety_tolerance: "5", seed: c.seed ?? 4147 },
         c.id,
       );
       const local = await download(d.images[0].url, path.join(dir, "portrait.jpg"));
@@ -167,7 +167,7 @@ async function processCharacter(c) {
           negative_prompt: "subtitles, captions, closed captions, on-screen text, text overlay, lower third, watermark, logo",
           duration: "8s",
           resolution: "1080p",
-          aspect_ratio: "16:9",
+          aspect_ratio: c.aspect ?? "16:9",
           generate_audio: true,
           safety_tolerance: "6",
           auto_fix: false,
@@ -219,9 +219,19 @@ async function processCharacter(c) {
     const mp4 = path.join(publicDir, `${c.id}.mp4`);
     const jpg = path.join(publicDir, `${c.id}.jpg`);
     // Transcode to 720p H.264 with faststart: ~2 MB per clip instead of ~7 MB, and playback starts immediately.
+    // Vertical clips keep their shape: 720 wide, 1280 tall.
+    // Optional clean-up for a take that's right except for its tail: `trimEnd` stops the clip
+    // there, `muteAfter` drops a stray trailing word while the picture keeps going.
+    const tidy = [
+      ...(c.trimEnd ? ["-t", String(c.trimEnd)] : []),
+      ...(c.muteAfter ? ["-af", `volume=enable='gte(t,${c.muteAfter})':volume=0.05`] : []),
+    ];
+    // `zoomTop` crops to that fraction of the frame, anchored at the top, to lose anything Veo
+    // burned into the bottom (it sometimes adds fake subtitles despite the negative prompt).
+    const zoom = c.zoomTop ? `crop=iw*${c.zoomTop}:ih*${c.zoomTop}:(iw-iw*${c.zoomTop})/2:0,` : "";
     execFileSync(FFMPEG, [
-      "-y", "-loglevel", "error", "-i", src,
-      "-vf", "scale=1280:-2", "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
+      "-y", "-loglevel", "error", "-i", src, ...tidy,
+      "-vf", `${zoom}${c.aspect === "9:16" ? "scale=720:1280" : "scale=1280:720"}`, "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
       "-c:a", "aac", "-b:a", "128k", "-ac", "2", "-movflags", "+faststart", mp4,
     ]);
     execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-ss", "0.3", "-i", mp4, "-frames:v", "1", "-q:v", "4", jpg]);

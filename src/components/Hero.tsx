@@ -1,13 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useOrders } from "@/lib/orders";
 import { ProductBox } from "./ProductBox";
 import { Starburst } from "./Starburst";
-import { randInt } from "@/lib/random";
+import { pick, randInt } from "@/lib/random";
+import { orderPlaceholders } from "@/data/misc";
+import { isBlackFridayWeek } from "@/lib/season";
 
 export function Hero() {
   const { open } = useOrders();
   const [stock, setStock] = useState(3);
   const [bump, setBump] = useState(false);
+  const [want, setWant] = useState("");
+  const [placeholder, setPlaceholder] = useState("those shoes");
+  const [bf] = useState(isBlackFridayWeek);
+
+  useEffect(() => {
+    const id = setInterval(() => setPlaceholder(pick(orderPlaceholders)), 2200);
+    return () => clearInterval(id);
+  }, []);
+
+  const start = (e: FormEvent) => {
+    e.preventDefault();
+    open(want.trim());
+  };
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -21,10 +36,14 @@ export function Hero() {
   return (
     <section id="top" className="relative overflow-hidden border-b-[3px] border-ink">
       <div className="halftone absolute inset-0 -z-10" />
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-6 lg:pb-24 lg:pt-20">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-6 sm:px-6 sm:pt-12 lg:grid-cols-[1.15fr_1fr] lg:gap-6 lg:pb-24 lg:pt-20">
         <div className="animate-slide-up">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="eyebrow">★ As seen on a screen ★</span>
+            {bf ? (
+              <span className="eyebrow !bg-ink !text-tv">★ Black Friday edition ★</span>
+            ) : (
+              <span className="eyebrow hidden sm:inline-block">★ As seen on a screen ★</span>
+            )}
             <span
               className={`inline-flex items-center gap-1 border-2 border-urgent bg-white px-2 py-1 text-xs font-bold uppercase tracking-wide text-urgent ${
                 bump ? "animate-shake" : ""
@@ -36,7 +55,7 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="mt-6 font-display text-[2.9rem] uppercase leading-[0.9] tracking-tight sm:text-7xl lg:text-[4.75rem]">
+          <h1 className="mt-5 font-display text-[2.6rem] uppercase leading-[0.9] tracking-tight sm:mt-6 sm:text-7xl lg:text-[4.75rem]">
             Still haven't
             <br />
             ordered
@@ -46,21 +65,38 @@ export function Hero() {
 
           <p className="lede">
             Every problem you've ever had has one thing in common: you hadn't ordered that shit yet.
-            Fix that in 3–5 business days.<sup>*</sup>
+            It won't fix the problem. It will fix how you feel about it, for 3–5 business days.
+            <sup>*</sup>
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <button type="button" onClick={() => open()} className="btn-primary animate-pulse-ring text-lg">
-              Order That Shit →
-            </button>
-            <a href="#finder" className="btn-ghost">
-              I don't know which shit ↓
-            </a>
-          </div>
+          <form onSubmit={start} className="mt-6 max-w-xl sm:mt-8">
+            <label htmlFor="hero-item" className="text-sm font-bold">
+              That thing you keep thinking about ordering:
+            </label>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+              <input
+                id="hero-item"
+                value={want}
+                onChange={(e) => setWant(e.target.value)}
+                placeholder={placeholder}
+                maxLength={80}
+                autoComplete="off"
+                className="min-w-0 flex-1 border-[3px] border-ink bg-white px-4 py-3 text-lg shadow-hard-sm focus:border-urgent focus:outline-none"
+              />
+              <button type="submit" className="btn-primary animate-pulse-ring text-lg">
+                Order That Shit →
+              </button>
+            </div>
+          </form>
+          <a href="#finder" className="mt-4 inline-block text-sm font-bold underline decoration-tv decoration-4 underline-offset-4">
+            I don't know which shit ↓
+          </a>
 
-          <p className="fine mt-4">
-            <sup>*</sup>Problems may persist. Shit will not. Shipping to Ohio is free because of a
-            thing that happened.
+          <p className="fine mt-4 max-w-xl">
+            <sup>*</sup>This part is real: making a purchase decision measurably reduces sadness, even
+            when nothing gets bought (Rick, Pereira &amp; Burson, 2014). So this checkout charges
+            nothing and still works. Everything else on this page is made up. Shipping to Ohio is
+            free because of a thing that happened.
           </p>
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink/70">

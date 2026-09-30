@@ -2,7 +2,7 @@
 // the palette, the self-hosted fonts, the cardboard box, the starburst, and the
 // screenshot boilerplate. Used by generate-og.mjs and generate-share-cards.mjs.
 import { chromium } from "playwright";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -18,10 +18,15 @@ export const palette = {
   cash: "#16c172",
 };
 
-/** @font-face rules pointing at the repo's woff2 files, for use inside a data/file page. */
+/**
+ * @font-face rules for the repo's woff2 files, inlined as data URLs. A page loaded with
+ * setContent() can't always fetch file:// fonts, and the silent fallback to Impact is easy
+ * to miss in a card.
+ */
+const fontUrl = (file) => `data:font/woff2;base64,${readFileSync(path.join(fontsDir, file)).toString("base64")}`;
 export const fontCss = `
-  @font-face{font-family:'Archivo Black';font-weight:400;src:url('file://${path.join(fontsDir, "archivo-black-400-latin.woff2")}') format('woff2')}
-  @font-face{font-family:'Inter';font-weight:400 900;src:url('file://${path.join(fontsDir, "inter-400-900-latin.woff2")}') format('woff2')}
+  @font-face{font-family:'Archivo Black';font-weight:400;src:url(${fontUrl("archivo-black-400-latin.woff2")}) format('woff2')}
+  @font-face{font-family:'Inter';font-weight:400 900;src:url(${fontUrl("inter-400-900-latin.woff2")}) format('woff2')}
 `;
 
 /** Points for a 40-spike starburst polygon in a 100x100 viewBox. */

@@ -33,3 +33,16 @@ test("the ad can be skipped, and then it sells you that shit", async ({ page }) 
   await expect(ad).toBeHidden();
   await expect(orderModal(page)).toBeVisible();
 });
+
+test("a commercial opens full-height and plays", async ({ page }) => {
+  await page.goto("/");
+  await dismissCookieBanner(page);
+
+  await page.locator("#videos").getByRole("button", { name: /Side effects may include closure/ }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Ask your doctor" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator("video")).toHaveAttribute("src", "/videos/ad-pharma.mp4");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});

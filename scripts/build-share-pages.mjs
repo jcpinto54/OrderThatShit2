@@ -98,12 +98,12 @@ written.push(
     "c",
     page({
       url: `${SITE}/c/`,
-      title: "Certificate of Having Ordered That Shit — Order That Shit™",
-      ogTitle: "I ordered that shit. My problems are still here, but so is that shit.",
+      title: "Order Authorization — Order That Shit™",
+      ogTitle: "It's decided. I'm finally ordering that thing I kept thinking about.",
       description:
-        "Somebody ordered that shit and wants you to know. The only respectable response is to order that shit.",
+        "Somebody got officially approved to stop deliberating. Tell the Shit Finder what you keep thinking about ordering, and get your own authorization.",
       image: `${SITE}/share/certificate.png`,
-      body: "Somebody has ordered that shit. Order that shit.",
+      body: "Somebody got officially approved. Get your own authorization.",
     }),
   ),
 );
