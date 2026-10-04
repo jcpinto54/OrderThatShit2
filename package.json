@@ -6,14 +6,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "build": "tsc --noEmit -p tsconfig.json && vite build && node scripts/build-share-pages.mjs",
     "preview": "vite preview",
     "test:e2e": "npm run build && playwright test",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "og": "node scripts/generate-og.mjs",
     "deploy": "npm run build && wrangler deploy",
     "videos": "node scripts/generate-videos.mjs",
-    "transcribe": "node scripts/transcribe.mjs"
+    "transcribe": "node scripts/transcribe.mjs",
+    "social": "node scripts/make-social-cuts.mjs",
+    "ads": "node scripts/make-ads.mjs",
+    "cards": "node scripts/generate-share-cards.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -35,5 +38,8 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "wrangler": "^4.131.2"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }

@@ -10,11 +10,17 @@ The FDA has been notified.
 
 - **Hero** with a stock counter that only goes up and a flash sale that never ends.
 - **Testimonials** from real\* people whose problems were fixed\*\* by ordering that shit.
-- **Shit Finder™**, an "AI" that analyzes any problem and recommends ordering that shit.
+- **Shit Finder™**, an "AI" that analyzes any problem and recommends ordering that shit. Every
+  verdict has its own link and its own preview card, so sharing one shows the verdict.
 - **The Science™**: charts proving a perfect correlation between ordering that shit and having ordered that shit.
-- **Video testimonials**, AI-generated on fal.ai (see below), and a 2h14m ad you can skip after eight seconds.
+- **Commercials**: four vertical ad parodies (a pharma ad, a 90s infomercial, a Black Friday
+  nature documentary, a perfume ad), plus video testimonials in 16:9 and 9:16, all AI-generated
+  on fal.ai (see below), and a 2h14m ad you can skip after eight seconds.
 - **Pricing**, a comparison table, press quotes, FAQ, and a legally exhausting footer.
-- A fake checkout that ends in confetti and a Certificate of Having Ordered That Shit.
+- A fake checkout for the thing you keep thinking about ordering. It ends in an **Order
+  Authorization**: a receipt with your item, how long it's been in your head, your mood before
+  and after, and an official justification, which you stamp yourself and can share as an image.
+- **Black Friday mode**, which switches itself on the week before Black Friday (see below).
 - Live purchase toasts, an idle nag, an exit-intent modal, and a cookie banner, because the big sites have those.
 
 \*Not real. \*\*Nothing.
@@ -24,6 +30,9 @@ The FDA has been notified.
 Vite + React + TypeScript + Tailwind CSS v4. Static output, no backend. No cookies, no
 fingerprinting and nothing that follows anyone between sites — the only measurement is
 Cloudflare's cookieless pageview counter, described under [Analytics](#analytics).
+Node 22.18 or newer: the build scripts import `src/data/verdicts.ts` directly, so they rely on
+Node running TypeScript without a build step. The Playwright scripts take `CHROMIUM_PATH` if you
+already have a Chromium lying around.
 
 ```bash
 npm install
@@ -32,6 +41,7 @@ npm run build      # typecheck + production build into dist/
 npm run preview    # serve dist/ locally
 npm run test:e2e   # Playwright smoke tests against the production build
 npm run og         # regenerate public/og.png (needs Playwright's Chromium)
+npm run cards      # regenerate the share cards in public/share/ (same)
 npm run videos     # regenerate the video testimonials on fal.ai (needs FAL_KEY)
 npm run deploy     # build + wrangler deploy to Cloudflare
 ```
@@ -93,6 +103,40 @@ CF_BEACON_TOKEN=... npm run build
 grep cloudflareinsights dist/index.html
 ```
 
+## Share links
+
+A shared joke only works if the preview carries it, so every Shit Finder verdict is its own
+URL with its own card:
+
+| URL | What it is |
+| --- | --- |
+| `/v/<id>/` | One Shit Finder verdict, with `public/share/<id>.png` as the preview |
+| `/c/` | Somebody's certificate. Landing here opens the order form, pre-filled with what they ordered |
+
+Link previews are built by crawlers that do not run JavaScript, so a single page app cannot
+give a share its own title and image. `scripts/build-share-pages.mjs` runs after `vite build`
+and writes a real `dist/v/<id>/index.html` per verdict: the same bundle and the same app, with
+the meta tags rewritten and the sitemap regenerated. The app reads the URL on load and shows
+the matching verdict without replaying the fake analysis. Nothing is added to the Worker, which
+stays assets-only.
+
+The cards themselves are pre-rendered by `npm run cards` and committed, the same way `og.png`
+is. That is deliberate. The verdict list is finite, so there is no reason to generate anything
+per visitor: no runtime cost, no per-share bill however far a link travels, and nothing to keep
+warm. The one rule that makes it work is that **the visitor's own typed problem never goes into
+the card**. It shows on the page and rides in `?p=`, capped and stripped in `src/lib/share.ts`,
+but burning it into an image would mean rendering per request and would let anyone craft a link
+that makes orderthatshit.com serve a preview card with their words on it.
+
+Verdicts live in `src/data/verdicts.ts`. Rewording one is free; **renaming an `id` breaks every
+link anyone has ever posted**, because the id is the URL and the card filename. Adding a verdict
+means running `npm run cards` and committing the new PNG — the build fails if a card is missing.
+
+To put art behind the cards, drop any number of images into `public/share/plates/` and run
+`npm run cards` again. Each verdict picks one by hash, so a given verdict always looks the same.
+They can come from anywhere, including a one-off fal.ai run like the videos below; generating a
+few dozen once is plenty, since nobody ever sees two cards side by side.
+
 ## Generating the video testimonials
 
 The clips in `public/videos/` are generated on [fal.ai](https://fal.ai) by
@@ -126,6 +170,51 @@ four testimonials plus the ad clip costs roughly $8 on fal at current prices.
 falls back to an animated placeholder, and the "Watch the ad" modal falls back to flashing
 text when `adVideo` is undefined.
 
+## Vertical versions and ad spots
+
+Two more scripts turn the clips into things you can post:
+
+- **`npm run social`** (`scripts/make-social-cuts.mjs`, config in `scripts/social-cuts.mjs`)
+  renders 1080×1920 cuts of every testimonial into `social/`: a hook card for the first
+  seconds (feeds start muted), burned-in captions timed from Whisper, and an "AI actor" tag.
+  16:9 sources get a face-sized square crop between halftone panels; 9:16 sources play
+  full-bleed. No API calls: rewrite a hook or caption and re-render for free.
+- **`npm run ads`** (`scripts/make-ads.mjs`, spots in `scripts/ads.mjs`) builds the multi-shot
+  commercials: FLUX keyframes where packaging text has to read, Veo 3.1 Fast shots, ElevenLabs
+  voiceover, a Lyria 2 music bed ducked under the voice, and supers and end cards drawn in the
+  site's fonts. It writes the 1080×1920 master to `social/ad-<id>.mp4` and a 720p copy plus
+  poster to `public/videos/` for the site. Every paid call is logged with an estimated cost in
+  `.cache/spend.jsonl`.
+
+```bash
+npm run ads -- --only pharma --steps keyframes,shots,vo,music   # generate (costs money)
+npm run ads -- --only pharma --steps render                     # re-edit (free)
+npm run social -- --only gary,diane                             # re-cut (free)
+```
+
+`social/` and `.cache/` are gitignored. `.cache/` holds the paid 1080p renders the edits are
+made from, so back it up before deleting a checkout. Season 2 characters (9:16) live in
+`scripts/video-characters.mjs` next to season 1; `trimEnd`, `muteAfter` and `zoomTop` there
+tidy up takes that are right except for a stray word or burned-in text.
+
+Label realistic AI people when posting: TikTok and Instagram require it, and EU AI Act
+Article 50 has applied since 2 Aug 2026. The cuts and end cards carry "AI actor" text; also
+switch on each platform's own AI label at upload.
+
+## Black Friday mode
+
+From the Friday before Black Friday through Cyber Monday (`src/lib/season.ts`), the flash
+sale becomes a Black Friday sale, the hero says so, some approvals get a Black Friday stamp,
+and the Black Friday commercial leads the video section. It turns itself on, so it can ship
+any time. Add `?bf=1` to any URL to preview it, `?bf=0` to force it off.
+
+## Research and the plan
+
+`docs/research/` holds the research this version of the site is built on: why things spread,
+what makes satire land, the psychology of finally ordering the thing, platform mechanics,
+case studies, the €1 mystery-order idea (verdict: don't), and AI video tooling.
+`docs/research/README.md` summarizes it and `docs/go-viral-plan.md` turns it into a plan.
+
 ## Editing the copy
 
 All words live in `src/data/`:
@@ -135,5 +224,8 @@ All words live in `src/data/`:
 | `testimonials.ts` | The testimonial cards |
 | `faqs.ts` | FAQ questions and answers |
 | `pricing.ts` | Pricing tiers |
-| `videos.ts` | Video testimonial cards |
-| `misc.ts` | "As seen on" outlets, press quotes, ticker names/places/items, Shit Finder verdicts, processing steps, nags |
+| `videos.ts` | Video testimonial cards and the commercials |
+| `verdicts.ts` | Shit Finder verdicts, each with the stable id used by its share link and card |
+| `authorization.ts` | The Order Authorization: deliberation options, justifications, denials, nudges |
+| `care.ts` | Where the joke stops: crisis and grief wording that gets a straight answer, not a verdict |
+| `misc.ts` | "As seen on" outlets, press quotes, ticker names/places/items, processing steps, nags |

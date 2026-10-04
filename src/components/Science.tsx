@@ -154,6 +154,33 @@ export function Science() {
           <Correlation />
         </div>
 
+        <div className="mt-6 card bg-tv p-6 sm:p-8">
+          <span className="eyebrow !bg-white">Plot twist · the only real study on this page</span>
+          <h3 className="mt-4 max-w-3xl font-display text-2xl uppercase leading-tight sm:text-3xl">
+            The benefits of retail therapy: making purchase decisions reduces residual sadness
+          </h3>
+          <p className="mt-2 text-sm font-bold">
+            Rick, Pereira &amp; Burson · Journal of Consumer Psychology, 2014
+          </p>
+          <p className="mt-4 max-w-3xl">
+            Sad people who made shopping choices felt less sad afterwards, and it worked even when
+            the purchases were hypothetical. The researchers think deciding hands you back a feeling
+            of control. Which means the only thing this website does is, technically, the part
+            that works. We did not plan this.
+          </p>
+          <p className="fine mt-3 text-ink/70">
+            The same study found it does nothing for anger. For anger, please order a pillow.{" "}
+            <a
+              className="font-bold underline"
+              href="https://doi.org/10.1016/j.jcps.2013.12.004"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read it (paywalled, like everything good)
+            </a>
+          </p>
+        </div>
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
           <div className="card bg-ink p-6 text-paper sm:p-8">
             <div className="font-display text-xs uppercase tracking-[0.25em] text-tv">

@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { finderSteps, finderVerdicts } from "@/data/misc";
+import { finderSteps } from "@/data/misc";
+import { genericVerdicts, matchVerdict, verdictById, type Verdict } from "@/data/verdicts";
+import { HELPLINE_URL, crisis, grief } from "@/data/care";
 import { pick, shuffle } from "@/lib/random";
 import { useOrders } from "@/lib/orders";
+import { readSharedLanding, shareLink, verdictShareUrl } from "@/lib/share";
 
 const chips = [
   "I'm tired",
@@ -12,28 +15,9 @@ const chips = [
   "My cat hates me",
   "It's Monday",
   "I have too much shit",
+  "4,000 unread emails",
+  "Black Friday FOMO",
 ];
-
-function specialVerdict(problem: string): string | null {
-  const p = problem.toLowerCase();
-  if (!p.trim()) return "You didn't describe a problem. That IS the problem. Order that shit.";
-  if (p.includes("too much shit") || p.includes("too much stuff"))
-    return "Interesting. Our data suggests the only cure for too much shit is slightly more shit. It's homeopathic.";
-  if (p.includes("shit")) return "You already have the energy. Now get the shit.";
-  if (p.includes("broke") || p.includes("money") || p.includes("debt") || p.includes("poor"))
-    return "Financial problems are best solved by spending money on that shit. Trust the process. Ignore your accountant. Her name is Nadia and she also ordered it.";
-  if (p.includes("help")) return "Help is not available at this time. That shit is.";
-  if (p.includes("code") || p.includes("bug") || p.includes("prod") || p.includes("deploy"))
-    return "Have you tried turning it off and ordering that shit?";
-  if (p.includes("monday")) return "Monday is a construct. So is that shit. Only one of them ships.";
-  if (p.includes("ex") && (p.includes("text") || p.includes("call")))
-    return "Do not text back. Order that shit instead. It arrives faster than closure.";
-  if (p.includes("cat") || p.includes("dog"))
-    return "Pets can sense when you haven't ordered that shit. It's in their eyes. Fix it.";
-  if (p.includes("tired") || p.includes("sleep"))
-    return "Rest is temporary. That shit is forever. Also it comes in a box you can lean on.";
-  return null;
-}
 
 type Phase = "idle" | "thinking" | "done";
 
@@ -43,18 +27,49 @@ export function ShitFinder() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [steps, setSteps] = useState<string[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
-  const [verdict, setVerdict] = useState("");
+  const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [analysed, setAnalysed] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+  // Set when the problem isn't a joke; the Finder answers straight and offers nothing to share.
+  const [care, setCare] = useState<"crisis" | "grief" | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const run = (text: string) => {
+    const serious = crisis.test(text) ? "crisis" : grief.test(text) ? "grief" : null;
+    setCare(serious);
+    if (serious) {
+      setAnalysed(text);
+      setVerdict(null);
+      setPhase("done");
+      return;
+    }
     const chosen = shuffle(finderSteps).slice(0, 4);
     setAnalysed(text);
     setSteps(chosen);
     setStepIdx(0);
-    setVerdict(specialVerdict(text) ?? pick(finderVerdicts));
+    setVerdict(matchVerdict(text) ?? pick(genericVerdicts));
+    setShared(false);
+    setCopied(false);
     setPhase("thinking");
   };
+
+  // Someone followed a /v/<id>/ link: show them that verdict straight away,
+  // without making them sit through the analysis they already know is fake.
+  useEffect(() => {
+    const landing = readSharedLanding();
+    if (landing?.kind !== "verdict") return;
+    const v = verdictById(landing.id);
+    if (!v) return;
+    const chosen = shuffle(finderSteps).slice(0, 4);
+    setAnalysed(landing.problem);
+    setProblem(landing.problem);
+    setSteps(chosen);
+    setStepIdx(chosen.length);
+    setVerdict(v);
+    setShared(true);
+    setPhase("done");
+  }, []);
 
   useEffect(() => {
     if (phase !== "thinking") return;
@@ -66,13 +81,31 @@ export function ShitFinder() {
     return () => clearTimeout(t);
   }, [phase, stepIdx, steps.length]);
 
+  // A visitor who typed a problem is already looking at the panel, so nudge it.
+  // A visitor who arrived on a shared link is at the top of the page and has to
+  // be taken to the verdict they were sent.
   useEffect(() => {
-    if (phase === "done") resultRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [phase]);
+    if (phase !== "done") return;
+    resultRef.current?.scrollIntoView({
+      block: shared ? "center" : "nearest",
+      behavior: shared ? "auto" : "smooth",
+    });
+  }, [phase, shared]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     run(problem);
+  };
+
+  const onShare = async () => {
+    if (!verdict) return;
+    const toClipboard = await shareLink(
+      `The Shit Finder™ looked at my problem and said: “${verdict.text}”`,
+      verdictShareUrl(verdict.id, analysed),
+    );
+    if (!toClipboard) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const label = analysed.trim() ? `“${analysed.trim()}”` : "(nothing)";
@@ -126,7 +159,49 @@ export function ShitFinder() {
           </div>
         </form>
 
-        {phase !== "idle" && (
+        {care && (
+          <div
+            ref={resultRef}
+            className="mt-10 border-[3px] border-paper bg-ink-2 p-6 sm:p-8"
+            aria-live="polite"
+          >
+            <div className="font-display text-2xl uppercase leading-tight text-tv sm:text-3xl">
+              {care === "crisis" ? "We can't joke about this one." : "This one's too real for a joke website."}
+            </div>
+            {care === "crisis" ? (
+              <p className="mt-4 max-w-prose text-paper/85">
+                If you're thinking about hurting yourself, please talk to someone today. There is
+                free, confidential support in almost every country:{" "}
+                <a className="font-bold text-tv underline" href={HELPLINE_URL} target="_blank" rel="noopener noreferrer">
+                  findahelpline.com
+                </a>
+                . If you're in immediate danger, call your local emergency number.
+              </p>
+            ) : (
+              <p className="mt-4 max-w-prose text-paper/85">
+                We're sorry. There's no verdict for this, and nothing to order. Be gentle with
+                yourself today, and if it would help to talk to someone,{" "}
+                <a className="font-bold text-tv underline" href={HELPLINE_URL} target="_blank" rel="noopener noreferrer">
+                  findahelpline.com
+                </a>{" "}
+                lists free support near you.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setCare(null);
+                setPhase("idle");
+                setProblem("");
+              }}
+              className="btn-ghost-light mt-6"
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {!care && phase !== "idle" && (
           <div
             ref={resultRef}
             className="mt-10 border-[3px] border-paper bg-ink-2 p-6 font-mono text-sm shadow-hard-tv sm:p-8"
@@ -149,30 +224,38 @@ export function ShitFinder() {
               ))}
             </ul>
 
-            {phase === "done" && (
+            {phase === "done" && verdict && (
               <div className="mt-6 animate-pop border-t-2 border-dashed border-paper/30 pt-6 font-sans">
                 <div className="text-xs uppercase tracking-[0.25em] text-paper/50">
-                  Recommended solution · confidence 100%
+                  {shared ? "Somebody sent you this verdict" : "Recommended solution"} · confidence
+                  100%
                 </div>
                 <div className="mt-2 font-display text-3xl uppercase leading-none text-tv sm:text-4xl">
                   Order that shit.
                 </div>
-                <p className="mt-4 max-w-prose text-base text-paper/80">{verdict}</p>
+                <p className="mt-4 max-w-prose text-base text-paper/80">{verdict.text}</p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <button type="button" onClick={() => open(analysed.trim())} className="btn-primary">
                     Order that shit for this →
+                  </button>
+                  <button type="button" onClick={onShare} className="btn-ghost-light">
+                    {copied ? "Copied. Go ruin someone's day." : "Share this verdict"}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setPhase("idle");
                       setProblem("");
+                      setShared(false);
                     }}
                     className="btn-ghost-light"
                   >
                     I have another problem
                   </button>
                 </div>
+                <p className="fine mt-3 text-paper/40">
+                  Sharing sends the verdict and, in the link, the words you typed.
+                </p>
               </div>
             )}
           </div>

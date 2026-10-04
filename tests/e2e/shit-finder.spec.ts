@@ -34,3 +34,28 @@ test("a suggestion chip runs the finder on its own", async ({ page }) => {
   await finder.getByRole("button", { name: "I have another problem" }).click();
   await expect(finder.getByText("Recommended solution · confidence 100%")).toBeHidden();
 });
+
+test("the finder answers straight when the problem isn't a joke", async ({ page }) => {
+  await page.goto("/");
+  await dismissCookieBanner(page);
+
+  const finder = page.locator("#finder");
+  await finder.getByLabel("Describe your problem").fill("my dad passed away last week");
+  await finder.getByRole("button", { name: "Analyze my problem" }).click();
+
+  await expect(finder.getByText("This one's too real for a joke website.")).toBeVisible();
+  await expect(finder.getByRole("link", { name: "findahelpline.com" })).toBeVisible();
+  await expect(finder.getByRole("button", { name: "Share this verdict" })).toHaveCount(0);
+});
+
+test("keywords match whole words, so a vacation is not a cat", async ({ page }) => {
+  await page.goto("/");
+  await dismissCookieBanner(page);
+
+  const finder = page.locator("#finder");
+  await finder.getByLabel("Describe your problem").fill("I badly need a vacation");
+  await finder.getByRole("button", { name: "Analyze my problem" }).click();
+
+  await expect(finder.getByText("Recommended solution · confidence 100%")).toBeVisible();
+  await expect(finder.getByText(/Pets can sense/)).toHaveCount(0);
+});

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { adVideo, videos, type VideoTestimonial } from "@/data/videos";
+import { adVideo, commercials, videos, type VideoTestimonial } from "@/data/videos";
+import { isBlackFridayWeek } from "@/lib/season";
 import { Modal } from "./Modal";
 import { useOrders } from "@/lib/orders";
 
@@ -175,8 +176,77 @@ function TheAd({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
+/** A vertical clip: a poster in the row, full-height in a modal when tapped. */
+function Reel({ v }: { v: VideoTestimonial }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`Play ${v.title} (${v.name})`}
+        className="group relative block aspect-[9/16] w-full overflow-hidden border-b-[3px] border-ink bg-ink"
+      >
+        <img src={v.poster} alt="" loading="lazy" className="h-full w-full object-cover" />
+        {/* Low in the frame, so the button never sits on a face. */}
+        <span className="absolute inset-x-0 bottom-5 flex justify-center">
+          <span className="grid h-14 w-14 place-items-center border-[3px] border-paper bg-urgent pl-1 text-xl text-white shadow-hard-sm transition group-hover:scale-110">
+            ▶
+          </span>
+        </span>
+        <span className="absolute right-2 top-2 bg-ink/80 px-2 py-0.5 font-mono text-xs text-paper">
+          {v.duration}
+        </span>
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} label={v.name} tone="ink">
+        <video
+          src={v.src}
+          poster={v.poster}
+          autoPlay
+          controls
+          playsInline
+          className="mx-auto aspect-[9/16] max-h-[78vh] w-auto max-w-full border-[3px] border-paper bg-ink"
+        />
+        <div className="mt-3 text-center">
+          <div className="font-display text-sm uppercase">{v.title}</div>
+          <div className="text-xs text-paper/60">{v.name}</div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+/** A swipeable row of vertical clips on phones, a grid on bigger screens. */
+function ReelRow({ title, items, columns }: { title: React.ReactNode; items: VideoTestimonial[]; columns: string }) {
+  return (
+    <div>
+      <h3 className="font-display text-2xl uppercase leading-none sm:text-3xl">{title}</h3>
+      <ul className={`-mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0 ${columns}`}>
+        {items.map((v) => (
+          <li
+            key={v.id}
+            className="card w-[58vw] max-w-[240px] shrink-0 snap-start overflow-hidden bg-paper text-ink sm:w-auto sm:max-w-none"
+          >
+            <Reel v={v} />
+            <div className="p-3">
+              <div className="font-display text-xs uppercase leading-tight">{v.title}</div>
+              <div className="mt-1 text-[11px] text-ink/60">{v.name}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function Videos() {
   const [adOpen, setAdOpen] = useState(false);
+  const wide = videos.filter((v) => v.aspect !== "9:16");
+  const tall = videos.filter((v) => v.aspect === "9:16");
+  // Black Friday week leads with the Black Friday spot.
+  const [spots] = useState(() =>
+    isBlackFridayWeek() ? [...commercials].sort((a) => (a.id === "ad-migration" ? -1 : 0)) : commercials,
+  );
   return (
     <section id="videos" className="border-b-[3px] border-ink bg-ink-2 py-20 text-paper">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -197,19 +267,45 @@ export function Videos() {
           </button>
         </div>
 
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {videos.map((v) => (
-            <li key={v.id} className="card overflow-hidden bg-paper text-ink">
-              {v.src ? <RealVideo v={v} /> : <FakeVideo v={v} />}
-              <div className="p-4">
-                <div className="font-display text-sm uppercase leading-tight">{v.title}</div>
-                <div className="mt-1 text-xs text-ink/60">{v.name} · ✓ Verified Orderer</div>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* Commercials first everywhere. On phones the vertical testimonials come next, since
+            vertical is what the phone was made for; on bigger screens the 16:9 grid does. */}
+        <div className="mt-12 flex flex-col gap-12 sm:gap-14">
+          <ReelRow
+            title={
+              <>
+                Our commercials <span className="text-tv">(now airing nowhere)</span>
+              </>
+            }
+            items={spots}
+            columns="sm:grid-cols-4"
+          />
+          <ul className="order-2 grid gap-6 sm:order-1 sm:grid-cols-2 lg:grid-cols-4">
+            {wide.map((v) => (
+              <li key={v.id} className="card overflow-hidden bg-paper text-ink">
+                {v.src ? <RealVideo v={v} /> : <FakeVideo v={v} />}
+                <div className="p-4">
+                  <div className="font-display text-sm uppercase leading-tight">{v.title}</div>
+                  <div className="mt-1 text-xs text-ink/60">{v.name} · ✓ Verified Orderer</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {tall.length > 0 && (
+            <div className="order-1 sm:order-2">
+              <ReelRow
+                title={
+                  <>
+                    More verified orderers <span className="text-tv">(now vertical)</span>
+                  </>
+                }
+                items={tall}
+                columns="sm:grid-cols-4 lg:grid-cols-7"
+              />
+            </div>
+          )}
+        </div>
         <p className="fine mt-4 text-paper/40">
-          *Not real. Faces removed for privacy, and because we did not film anyone.
+          *Not real. Every face here was made by an AI video model. We did not film anyone.
         </p>
       </div>
       <TheAd open={adOpen} onClose={() => setAdOpen(false)} />
